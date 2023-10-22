@@ -170,7 +170,7 @@ if (require("dplyr")) {
 
 # 1. Accuracy and Cohen's Kappa ----
 ## 1.a. Load the dataset ----
-data(PimaIndiansDiabetes)
+data(diabetes)
 
 ## 1.b. Determine the Baseline Accuracy ----
 # Identify the number of instances that belong to each class (distribution or
@@ -184,20 +184,20 @@ data(PimaIndiansDiabetes)
 
 # This in turn implies that the baseline accuracy is 65%.
 
-pima_indians_diabetes_freq <- PimaIndiansDiabetes$diabetes
+diabetes_freq <- diabetes$diabetes
 cbind(frequency =
-        table(pima_indians_diabetes_freq),
-      percentage = prop.table(table(pima_indians_diabetes_freq)) * 100)
+        table(diabetes_freq),
+      percentage = prop.table(table(diabetes_freq)) * 100)
 
 ## 1.c. Split the dataset ----
 # Define a 75:25 train:test data split of the dataset.
 # That is, 75% of the original data will be used to train the model and
 # 25% of the original data will be used to test the model.
-train_index <- createDataPartition(PimaIndiansDiabetes$diabetes,
+train_index <- createDataPartition(diabetes$diabetes,
                                    p = 0.75,
                                    list = FALSE)
-pima_indians_diabetes_train <- PimaIndiansDiabetes[train_index, ]
-pima_indians_diabetes_test <- PimaIndiansDiabetes[-train_index, ]
+diabetes_train <- diabetes[train_index, ]
+diabetes_test <- diabetes[-train_index, ]
 
 ## 1.d. Train the Model ----
 # We apply the 5-fold cross validation resampling method
@@ -211,7 +211,7 @@ train_control <- trainControl(method = "cv", number = 5)
 # run the same code, you will get the same "random" numbers.
 set.seed(7)
 diabetes_model_glm <-
-  train(diabetes ~ ., data = pima_indians_diabetes_train, method = "glm",
+  train(diabetes ~ ., data = diabetes, method = "glm",
         metric = "Accuracy", trControl = train_control)
 
 ## 1.e. Display the Model's Performance ----
@@ -229,16 +229,16 @@ print(diabetes_model_glm)
 # confusion matrix represent predicted values and column headers are used to
 # represent actual values.
 
-predictions <- predict(diabetes_model_glm, pima_indians_diabetes_test[, 1:8])
+predictions <- predict(diabetes_model_glm, diabetes_test[, 1:8])
 confusion_matrix <-
   caret::confusionMatrix(predictions,
-                         pima_indians_diabetes_test[, 1:9]$diabetes)
+                         diabetes_test[, 1:9]$diabetes)
 print(confusion_matrix)
 
 ### Option 3: Display a graphical confusion matrix ----
 
 # Visualizing Confusion Matrix
-fourfoldplot(as.table(confusion_matrix), color = c("grey", "lightblue"),
+fourfoldplot(as.table(confusion_matrix), color = c("pink", "orange"),
              main = "Confusion Matrix")
 
 # 2. RMSE, R Squared, and MAE ----
@@ -254,9 +254,9 @@ fourfoldplot(as.table(confusion_matrix), color = c("grey", "lightblue"),
 # 0 refers to "no fit" and 1 refers to a "perfect fit".
 
 ## 2.a. Load the dataset ----
-data(longley)
-summary(longley)
-longley_no_na <- na.omit(longley)
+data(Insurance)
+summary(Insurance)
+Insurance_no_na <- na.omit(Insurance)
 
 ## 2.b. Split the dataset ----
 # Define a train:test data split of the dataset. Such that 10/16 are in the
