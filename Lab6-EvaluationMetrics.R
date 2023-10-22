@@ -271,9 +271,9 @@ set.seed(7)
 
 # We apply simple random sampling using the base::sample function to get
 # 10 samples
-train_index <- sample(1:dim(longley)[1], 10) # nolint: seq_linter.
-longley_train <- longley[train_index, ]
-longley_test <- longley[-train_index, ]
+train_index <- sample(1:dim(Insurance)[1], 5) # nolint: seq_linter.
+Insurance_train <- Insurance[train_index, ]
+Insurance_test <- Insurance[-train_index, ]
 
 ## 2.c. Train the Model ----
 # We apply bootstrapping with 1,000 repetitions
@@ -281,8 +281,8 @@ train_control <- trainControl(method = "boot", number = 1000)
 
 # We then train a linear regression model to predict the value of Employed
 # (the number of people that will be employed given the independent variables).
-longley_model_lm <-
-  train(Employed ~ ., data = longley_train,
+Insurance_model_lm <-
+  train(charges ~ ., data = Insurance_train,
         na.action = na.omit, method = "lm", metric = "RMSE",
         trControl = train_control)
 
@@ -291,10 +291,10 @@ longley_model_lm <-
 # The results show an RMSE value of approximately 4.3898 and
 # an R Squared value of approximately 0.8594
 # (the closer the R squared value is to 1, the better the model).
-print(longley_model_lm)
+print(Insurance_model_lm)
 
 ### Option 2: Compute the metric yourself using the test dataset ----
-predictions <- predict(longley_model_lm, longley_test[, 1:6])
+predictions <- predict(Insurance_model_lm, Insurance_test[, 1:6])
 
 # These are the 6 values for employment that the model has predicted:
 print(predictions)
@@ -306,13 +306,13 @@ print(paste("RMSE =", rmse))
 #### SSR ----
 # SSR is the sum of squared residuals (the sum of squared differences
 # between observed and predicted values)
-ssr <- sum((longley_test$Employed - predictions)^2)
+ssr <- sum((Insurance_test$bmi - predictions)^2)
 print(paste("SSR =", ssr))
 
 #### SST ----
 # SST is the total sum of squares (the sum of squared differences
 # between observed values and their mean)
-sst <- sum((longley_test$Employed - mean(longley_test$Employed))^2)
+sst <- sum((Insurance_test$bmi - mean(Insurance_test$bmi))^2)
 print(paste("SST =", sst))
 
 #### R Squared ----
@@ -353,22 +353,22 @@ print(paste("MAE =", mae))
 #         rate.
 
 ## 3.a. Load the dataset ----
-data(PimaIndiansDiabetes)
+data(Insurance)
 ## 3.b. Determine the Baseline Accuracy ----
 # The baseline accuracy is 65%.
 
-pima_indians_diabetes_freq <- PimaIndiansDiabetes$diabetes
+Insurance_freq <- Insurance$insurance
 cbind(frequency =
-        table(pima_indians_diabetes_freq),
-      percentage = prop.table(table(pima_indians_diabetes_freq)) * 100)
+        table(Insurance_freq),
+      percentage = prop.table(table(Insurance_freq)) * 100)
 
 ## 3.c. Split the dataset ----
 # Define an 80:20 train:test data split of the dataset.
-train_index <- createDataPartition(PimaIndiansDiabetes$diabetes,
+train_index <- createDataPartition(Insurance,
                                    p = 0.8,
                                    list = FALSE)
-pima_indians_diabetes_train <- PimaIndiansDiabetes[train_index, ]
-pima_indians_diabetes_test <- PimaIndiansDiabetes[-train_index, ]
+Insurance_train <- Insurance[train_index, ]
+Insurance_test <- Insurance[-train_index, ]
 
 ## 3.d. Train the Model ----
 # We apply the 10-fold cross validation resampling method
@@ -380,8 +380,8 @@ train_control <- trainControl(method = "cv", number = 10,
 # (whether the patient will test positive/negative for diabetes).
 
 set.seed(7)
-diabetes_model_knn <-
-  train(diabetes ~ ., data = pima_indians_diabetes_train, method = "knn",
+Insurance_model_knn <-
+  train(Insurance ~ ., data = Insurance_train, method = "knn",
         metric = "ROC", trControl = train_control)
 
 ## 3.e. Display the Model's Performance ----
@@ -390,17 +390,17 @@ diabetes_model_knn <-
 # the higher the prediction accuracy) when the parameter k = 9
 # (9 nearest neighbours).
 
-print(diabetes_model_knn)
+print(Insurance_model_knn)
 
 ### Option 2: Compute the metric yourself using the test dataset ----
 #### Sensitivity and Specificity ----
-predictions <- predict(diabetes_model_knn, pima_indians_diabetes_test[, 1:8])
+predictions <- predict(Insurance_model_knn, Insurance_test[, 1:5])
 # These are the values for diabetes that the
 # model has predicted:
 print(predictions)
 confusion_matrix <-
   caret::confusionMatrix(predictions,
-                         pima_indians_diabetes_test[, 1:9]$diabetes)
+                         Insurance_test[, 1:5]$diabetes)
 
 # We can see the sensitivity (≈ 0.86) and the specificity (≈ 0.60) below:
 print(confusion_matrix)
@@ -408,7 +408,7 @@ print(confusion_matrix)
 #### AUC ----
 # The type = "prob" argument specifies that you want to obtain class
 # probabilities as the output of the prediction instead of class labels.
-predictions <- predict(diabetes_model_knn, pima_indians_diabetes_test[, 1:8],
+predictions <- predict(Insurance_model_knn, Insurance_test[, 1:5],
                        type = "prob")
 
 # These are the class probability values for diabetes that the
@@ -425,7 +425,7 @@ print(predictions)
 # specifies how you define which class is considered the positive class (cases)
 # and which is considered the negative class (controls) when calculating
 # sensitivity and specificity.
-roc_curve <- roc(pima_indians_diabetes_test$diabetes, predictions$neg)
+roc_curve <- roc(Insurance_test$insurance, predictions$neg)
 
 # Plot the ROC curve
 plot(roc_curve, main = "ROC Curve for KNN Model", print.auc = TRUE,
@@ -455,7 +455,7 @@ plot(roc_curve, main = "ROC Curve for KNN Model", print.auc = TRUE,
 
 ########################### ----
 ## 4.a. Load the dataset ----
-data(iris)
+data(Insurance)
 
 ## 4.b. Train the Model ----
 # We apply the 5-fold repeated cross validation resampling method
@@ -467,14 +467,14 @@ set.seed(7)
 # This creates a CART model. One of the parameters used by a CART model is "cp".
 # "cp" refers to the "complexity parameter". It is used to impose a penalty to
 # the tree for having too many splits. The default value is 0.01.
-iris_model_cart <- train(Species ~ ., data = iris, method = "rpart",
+Insurance_model_cart <- train(age ~ ., data = Insurance, method = "rpart",
                          metric = "logLoss", trControl = train_control)
 
 ## 4.c. Display the Model's Performance ----
 ### Option 1: Use the metric calculated by caret when training the model ----
 # The results show that a cp value of ≈ 0 resulted in the lowest
 # LogLoss value. The lowest logLoss value is ≈ 0.46.
-print(iris_model_cart)
+print(Insurance_model_cart)
 
 # [OPTIONAL] **Deinitialization: Create a snapshot of the R environment ----
 # Lastly, as a follow-up to the initialization step, record the packages
@@ -496,6 +496,10 @@ print(iris_model_cart)
 ## Wickham, H., François, R., Henry, L., Müller, K., Vaughan, D., Software, P., & PBC. (2023). dplyr: A Grammar of Data Manipulation (1.1.3) [Computer software]. https://cran.r-project.org/package=dplyr # nolint ----
 
 ## Wickham, H., Chang, W., Henry, L., Pedersen, T. L., Takahashi, K., Wilke, C., Woo, K., Yutani, H., Dunnington, D., Posit, & PBC. (2023). ggplot2: Create Elegant Data Visualisations Using the Grammar of Graphics (3.4.3) [Computer software]. https://cran.r-project.org/package=ggplot2 # nolint ----
+
+##https://kaggle.com/datasets/salihacur/diabetes
+
+##https://www.kaggle.com/datasets/willianoliveiragibin/healthcare-insurance/
 
 # **Required Lab Work Submission** ----
 ## Part A ----
